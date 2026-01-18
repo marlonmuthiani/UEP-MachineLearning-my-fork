@@ -20,6 +20,7 @@ STATIC_FIELDS = [
     "created_at",
     "end_date",
     "resolution_source",
+    "commentCount",
 ]
 
 SNAPSHOT_FIELDS = [
