@@ -3,26 +3,40 @@ import csv
 from datetime import datetime, timezone
 from typing import Dict, Any, List, Tuple
 
+
 DATA_DIR = "data"
 STATIC_PATH = os.path.join(DATA_DIR, "markets_static.csv")
 SNAPSHOT_PATH = os.path.join(DATA_DIR, "markets_snapshots.csv")
 
 
+# ---- STATIC: opis rynku (jeden rekord na market_id) ----
 STATIC_FIELDS = [
     "market_id",
     "event_id",
     "event_slug",
     "event_title",
+    "event_subtitle",
+    "event_description",
     "market_slug",
+    "market_title",
+    "market_subtitle",
     "question",
     "category",
     "subcategory",
     "created_at",
     "end_date",
     "resolution_source",
-    "commentCount",
+    "resolved_by",
+    "final_volume_total",   # wyliczane z volume przy closed == true
+    "final_volume24hr",    # wyliczane z volume24hr przy closed == true
+    "tags",                # z pola market.tags / string / lista labeli
+    "mailchimp_tag",       # z market.mailchimpTag
+    "promotion_group",     # z market.groupItemTitle / marketGroup
+    "commentCount",        # z event.commentCount lub market.commentCount (tu event)
 ]
 
+
+# ---- SNAPSHOT: stan rynku w czasie (wiele rekordów na market_id) ----
 SNAPSHOT_FIELDS = [
     "snapshot_ts",
     "market_id",
@@ -30,6 +44,8 @@ SNAPSHOT_FIELDS = [
     "closed",
     "featured",
     "new",
+    "archived",
+    "restricted",
     "volume24hr",
     "volume1wk",
     "volume1mo",
@@ -48,6 +64,8 @@ SNAPSHOT_FIELDS = [
     "commentCount",
     "competitive",
     "score",
+    "mailchimp_tag",       # promo flag w czasie
+    "promotion_group",     # groupItemTitle / marketGroup
 ]
 
 
@@ -82,11 +100,37 @@ def append_rows(path: str, header: List[str], rows: List[Dict[str, Any]]) -> Non
             writer.writerow(r)
 
 
-def process_events_into_rows(events: List[Dict[str, Any]]) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+def _serialize_tags(market: Dict[str, Any]) -> str:
+    """
+    Prosta serializacja tagów:
+    - Jeśli market['tags'] jest listą obiektów z 'label'/'slug', zwraca listę etykiet po przecinku.
+    - Jeśli jest stringiem, zwraca go wprost.
+    - Inaczej zwraca pusty string.
+    """
+    tags = market.get("tags") or []
+    if isinstance(tags, list):
+        labels: List[str] = []
+        for t in tags:
+            label = None
+            if isinstance(t, dict):
+                label = t.get("label") or t.get("slug") or t.get("id")
+            elif isinstance(t, str):
+                label = t
+            if label:
+                labels.append(str(label))
+        return ",".join(labels)
+    if isinstance(tags, str):
+        return tags
+    return ""
+
+
+def process_events_into_rows(
+    events: List[Dict[str, Any]]
+) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
     """
     Z surowych eventów z API zbuduj listę:
-    - static_rows: markets_static
-    - snapshot_rows: markets_snapshots
+    - static_rows: markets_static (jeden rekord na market_id)
+    - snapshot_rows: markets_snapshots (jeden rekord na market_id na snapshot_ts)
     """
     snapshot_ts = datetime.now(timezone.utc).isoformat()
     static_rows: List[Dict[str, Any]] = []
@@ -96,8 +140,11 @@ def process_events_into_rows(events: List[Dict[str, Any]]) -> Tuple[List[Dict[st
         event_id = ev.get("id")
         event_slug = ev.get("slug")
         event_title = ev.get("title")
+        event_subtitle = ev.get("subtitle") or ""
+        event_description = ev.get("description") or ""
         category = ev.get("category") or ""
         subcategory = ev.get("subcategory") or ""
+        event_comment_count = ev.get("commentCount") or ""
 
         markets = ev.get("markets") or []
         for m in markets:
@@ -105,23 +152,52 @@ def process_events_into_rows(events: List[Dict[str, Any]]) -> Tuple[List[Dict[st
             if not market_id:
                 continue
 
+            # ---- POLA PROMOCYJNE / META Z MARKETU ----
+            market_title = m.get("title") or ""
+            market_subtitle = m.get("subtitle") or ""
+            mailchimp_tag = m.get("mailchimpTag") or ""
+            promotion_group = m.get("groupItemTitle") or m.get("marketGroup") or ""
+            tags_str = _serialize_tags(m)
+
+            # Rozliczenie / zamknięcie – finalne volume, jeśli rynek jest już closed
+            resolution_source = m.get("resolutionSource") or ""
+            resolved_by = m.get("resolvedBy") or ""
+
+            final_volume_total = ""
+            final_volume24hr = ""
+            if m.get("closed"):
+                final_volume_total = m.get("volume") or m.get("volumeNum") or ""
+                final_volume24hr = m.get("volume24hr") or m.get("volume24hrNum") or ""
+
+            # ---------- STATIC ROW ----------
             static_rows.append(
                 {
                     "market_id": str(market_id),
                     "event_id": str(event_id) if event_id else "",
                     "event_slug": event_slug or "",
                     "event_title": event_title or "",
+                    "event_subtitle": event_subtitle,
+                    "event_description": event_description,
                     "market_slug": m.get("slug") or "",
-                    "question": m.get("question") or m.get("title") or "",
+                    "market_title": market_title,
+                    "market_subtitle": market_subtitle,
+                    "question": m.get("question") or market_title or "",
                     "category": category or (m.get("category") or ""),
                     "subcategory": subcategory or (m.get("subcategory") or ""),
                     "created_at": m.get("createdAt") or "",
                     "end_date": m.get("endDate") or m.get("umaEndDate") or "",
-                    "resolution_source": m.get("resolutionSource") or "",
+                    "resolution_source": resolution_source,
+                    "resolved_by": resolved_by,
+                    "final_volume_total": final_volume_total,
+                    "final_volume24hr": final_volume24hr,
+                    "tags": tags_str,
+                    "mailchimp_tag": mailchimp_tag,
+                    "promotion_group": str(promotion_group),
+                    "commentCount": event_comment_count,
                 }
             )
 
-            # Pola pomocnicze z fallbackami
+            # ---- POLA DYNAMICZNE (SNAPSHOT) ----
             volume24hr = (
                 m.get("volume24hr")
                 or m.get("volume24hrNum")
@@ -149,7 +225,10 @@ def process_events_into_rows(events: List[Dict[str, Any]]) -> Tuple[List[Dict[st
             score = m.get("score") or ""
 
             open_interest = m.get("openInterest") or ""
+            archived = m.get("archived") or ""
+            restricted = m.get("restricted") or ""
 
+            # ---------- SNAPSHOT ROW ----------
             snapshot_rows.append(
                 {
                     "snapshot_ts": snapshot_ts,
@@ -158,6 +237,8 @@ def process_events_into_rows(events: List[Dict[str, Any]]) -> Tuple[List[Dict[st
                     "closed": str(m.get("closed", "")),
                     "featured": str(m.get("featured", "")),
                     "new": str(m.get("new", "")),
+                    "archived": str(archived),
+                    "restricted": str(restricted),
                     "volume24hr": volume24hr,
                     "volume1wk": volume1wk,
                     "volume1mo": volume1mo,
@@ -176,6 +257,8 @@ def process_events_into_rows(events: List[Dict[str, Any]]) -> Tuple[List[Dict[st
                     "commentCount": comment_count,
                     "competitive": competitive,
                     "score": score,
+                    "mailchimp_tag": mailchimp_tag,
+                    "promotion_group": str(promotion_group),
                 }
             )
 
