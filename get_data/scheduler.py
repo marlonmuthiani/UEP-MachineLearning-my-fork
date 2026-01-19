@@ -2,7 +2,7 @@ import time
 from run_events_snapshot import collect_events_snapshot
 from datetime import datetime
 
-INTERVAL_MINUTES = 30
+INTERVAL_MINUTES = 20
 
 if __name__ == "__main__":
     while True:
