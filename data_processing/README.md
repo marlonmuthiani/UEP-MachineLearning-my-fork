@@ -22,7 +22,9 @@ uv sync
 To download and unpack the historical dataset:
 
 ```bash
-curl -L https://polydata-archive.s3.us-east-1.amazonaws.com/archive.tar.xz | tar -xJf - -C dataset
+mkdir -p dataset
+curl -L https://polydata-archive.s3.us-east-1.amazonaws.com/archive.tar.xz -o archive.tar.xz
+tar -xJf archive.tar.xz -C dataset
 ```
 
 This will stream the download directly to tar, avoiding intermediate disk writes and efficiently extracting to the `dataset` folder.
