@@ -1,5 +1,4 @@
 __pycache__/
 *.pyc
 
-data_model/db_additional.csv
-data_model/db_collected.csv
+data_model/
