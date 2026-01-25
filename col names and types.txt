@@ -1,0 +1,57 @@
+<class 'pandas.DataFrame'>
+RangeIndex: 652220 entries, 0 to 652219
+Data columns (total 50 columns):
+ #   Column              Non-Null Count   Dtype  
+---  ------              --------------   -----  
+ 0   Unnamed: 0          652220 non-null  int64  
+ 1   snapshot_ts         652220 non-null  str    
+ 2   market_id           652220 non-null  int64  
+ 3   active              652220 non-null  bool   
+ 4   closed              652220 non-null  bool   
+ 5   featured            652220 non-null  bool   
+ 6   new                 652220 non-null  bool   
+ 7   volume24hr          57687 non-null   float64
+ 8   volume1wk           57724 non-null   float64
+ 9   volume1mo           57724 non-null   float64
+ 10  volume1yr           57724 non-null   float64
+ 11  volume_total        338718 non-null  float64
+ 12  liquidity           651327 non-null  float64
+ 13  liquidityAmm        0 non-null       float64
+ 14  liquidityClob       396722 non-null  float64
+ 15  openInterest        0 non-null       float64
+ 16  lastTradePrice      63692 non-null   float64
+ 17  bestBid             392105 non-null  float64
+ 18  bestAsk             652220 non-null  float64
+ 19  spread              652220 non-null  float64
+ 20  oneDayPriceChange   126739 non-null  float64
+ 21  oneWeekPriceChange  0 non-null       float64
+ 22  commentCount_x      0 non-null       float64
+ 23  competitive         396722 non-null  float64
+ 24  score               0 non-null       float64
+ 25  archived            0 non-null       float64
+ 26  restricted          458888 non-null  object 
+ 27  mailchimp_tag_x     0 non-null       float64
+ 28  promotion_group_x   207926 non-null  str    
+ 29  event_id            651214 non-null  float64
+ 30  event_slug          651214 non-null  str    
+ 31  event_title         651214 non-null  str    
+ 32  market_slug         651214 non-null  str    
+ 33  question            651214 non-null  str    
+ 34  category            0 non-null       float64
+ 35  subcategory         0 non-null       float64
+ 36  created_at          651214 non-null  str    
+ 37  end_date            651148 non-null  str    
+ 38  resolution_source   554911 non-null  str    
+ 39  event_subtitle      0 non-null       float64
+ 40  event_description   537175 non-null  str    
+ 41  market_title        0 non-null       float64
+ 42  market_subtitle     0 non-null       float64
+ 43  resolved_by         284694 non-null  str    
+ 44  final_volume_total  591 non-null     float64
+ 45  final_volume24hr    426 non-null     float64
+ 46  tags                0 non-null       float64
+ 47  mailchimp_tag_y     0 non-null       float64
+ 48  promotion_group_y   239909 non-null  str    
+ 49  commentCount_y      3471 non-null    float64
+dtypes: bool(4), float64(31), int64(2), object(1), str(12)
+memory usage: 231.4+ MB
