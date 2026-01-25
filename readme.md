@@ -211,6 +211,18 @@ Polymarket API
 
 ## Quick Start
 
+### Recovery
+
+To restore the full development environment:
+```bash
+# Create virtual environment (recommended)
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install all dependencies
+pip install -r requirements.txt
+```
+
 ### Prerequisites
 ```bash
 pip install pandas numpy scikit-learn xgboost lightgbm catboost sentence-transformers requests
