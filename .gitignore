@@ -1,4 +1,10 @@
 __pycache__/
 *.pyc
 
-data_model/
+data_model/*
+!data_model/.gitkeep
+
+# Large files, check readme for download instructions
+data_enriched/markets.csv
+data_enriched/orderFilled.csv
+data_enriched/trades.csv
