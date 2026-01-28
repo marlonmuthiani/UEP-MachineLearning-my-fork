@@ -8,3 +8,8 @@ data_model/*
 data_enriched/markets.csv
 data_enriched/orderFilled.csv
 data_enriched/trades.csv
+.idea/misc.xml
+.idea/modules.xml
+.idea/UEP-MachineLearning.iml
+.idea/inspectionProfiles/profiles_settings.xml
+.idea/vcs.xml
